@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+require 'yaml'
+
+Person = Struct.new(:name, :email) do
+  def activate
+    `git config user.name '#{name}'`
+    `git config user.email '#{email}'`
+  end
+end
+
+class Pair < Person
+  def name
+    "Pairing #{super} + #{$me.name}"
+  end
+end
+
+$config = YAML.load(File.read("#{ENV['HOME']}/.git-pp.yml"))
+
+$me = Person.new($config['me']['name'], $config['me']['email'])
+$pairs = {}
+$config['pairs'].each do |pair_name, config|
+  $pairs[pair_name] = Pair.new(config['name'], config['email'])
+end
+
+person = $pairs[ARGV[0]] || $me
+puts "Activating: #{person.name}"
+person.activate
