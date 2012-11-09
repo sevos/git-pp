@@ -12,7 +12,8 @@ Install it yourself as:
 ## Usage
 
 1. Edit your ~/.git-pp.yml
-2. Switch to pairing mode
+2. Switch to pairing mode:
+
 
     $ git pp matt
     Activating: Pairing Matt Doe + Artur Roszczyk
