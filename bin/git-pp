@@ -46,6 +46,9 @@ TEMPLATE
     end
 
     puts "#{CONFIG_FILE_PATH} created."
+    puts "Press ENTER key to edit config..."
+    STDIN.getc
+    `#{ENV['EDITOR']} #{CONFIG_FILE_PATH}`
   end
 end
 
@@ -53,8 +56,8 @@ def switch(mate_name)
   config = begin
     YAML.load(File.read(CONFIG_FILE_PATH))
   rescue
-    STDERR.puts "Config file does not exist, please run:"
-    STDERR.puts "git pp setup"
+    STDERR.puts "Config file does not exist, creating..."
+    setup
     exit 1
   end
 
@@ -66,11 +69,6 @@ def switch(mate_name)
   person = pairs[mate_name.to_s.downcase] || me
   puts "Activating: #{person.name}"
   person.activate
-end
-
-if ARGV[0] == 'setup'
-  setup
-  exit 0
 end
 
 switch ARGV[0]
