@@ -4,16 +4,30 @@ require 'yaml'
 
 CONFIG_FILE_PATH="#{ENV['HOME']}/.git-pp.yml"
 
-Person = Struct.new(:name, :email) do
-  def activate
-    `git config user.name '#{name}'`
-    `git config user.email '#{email}'`
+module Git
+  module Pp
+    module Activable
+      def activate
+        `git config user.name '#{name}'`
+        `git config user.email '#{email}'`
+      end
+    end
   end
 end
 
-class Pair < Person
+Person = Struct.new(:name, :email) do
+  include Git::Pp::Activable
+end
+
+class Pair < Struct.new(:left, :right)
+  include Git::Pp::Activable
+
   def name
-    "Pairing #{super} + #{$me.name}"
+    "Pairing #{left.name} + #{right.name}"
+  end
+
+  def email
+    left.email
   end
 end
 
@@ -41,12 +55,13 @@ def switch(mate_name)
   rescue
     STDERR.puts "Config file does not exist, please run:"
     STDERR.puts "git pp setup"
+    exit 1
   end
 
   me = Person.new(config['me']['name'], config['me']['email'])
   pairs = {}
   config['pairs'].each do |pair_name, c|
-    pairs[pair_name] = Pair.new(c['name'], c['email'])
+    pairs[pair_name] = Pair.new(Person.new(c['name'], c['email']), me)
   end
   person = pairs[mate_name.to_s.downcase] || me
   puts "Activating: #{person.name}"
