@@ -2,6 +2,8 @@
 # encoding: utf-8
 require 'yaml'
 
+CONFIG_FILE_PATH="#{ENV['HOME']}/.git-pp.yml"
+
 Person = Struct.new(:name, :email) do
   def activate
     `git config user.name '#{name}'`
@@ -15,14 +17,45 @@ class Pair < Person
   end
 end
 
-$config = YAML.load(File.read("#{ENV['HOME']}/.git-pp.yml"))
+def setup
+  unless File.exists?(CONFIG_FILE_PATH)
+    File.open(CONFIG_FILE_PATH, 'w') do |file|
+      file << <<-TEMPLATE
+me:
+  name: #{`git config user.name`.strip}
+  email: #{`git config user.email`.strip}
+pairs:
+  matt:
+    name: Matt Doe
+    email: me_and_matt@example.com
+TEMPLATE
+    end
 
-$me = Person.new($config['me']['name'], $config['me']['email'])
-$pairs = {}
-$config['pairs'].each do |pair_name, config|
-  $pairs[pair_name] = Pair.new(config['name'], config['email'])
+    puts "#{CONFIG_FILE_PATH} created."
+  end
 end
 
-person = $pairs[ARGV[0]] || $me
-puts "Activating: #{person.name}"
-person.activate
+def switch(mate_name)
+  config = begin
+    YAML.load(File.read(CONFIG_FILE_PATH))
+  rescue
+    STDERR.puts "Config file does not exist, please run:"
+    STDERR.puts "git pp setup"
+  end
+
+  me = Person.new(config['me']['name'], config['me']['email'])
+  pairs = {}
+  config['pairs'].each do |pair_name, c|
+    pairs[pair_name] = Pair.new(c['name'], c['email'])
+  end
+  person = pairs[mate_name.to_s.downcase] || me
+  puts "Activating: #{person.name}"
+  person.activate
+end
+
+if ARGV[0] == 'setup'
+  setup
+  exit 0
+end
+
+switch ARGV[0]
