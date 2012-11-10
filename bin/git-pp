@@ -27,7 +27,7 @@ class Pair < Struct.new(:left, :right)
   end
 
   def email
-    left.email
+    "#{left.email}, #{right.email}"
   end
 end
 
