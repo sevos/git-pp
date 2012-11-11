@@ -38,10 +38,10 @@ def setup
 me:
   name: #{`git config user.name`.strip}
   email: #{`git config user.email`.strip}
-pairs:
+buddies:
   matt:
     name: Matt Doe
-    email: me_and_matt@example.com
+    email: matt@example.com
 TEMPLATE
     end
 
@@ -63,7 +63,7 @@ def switch(mate_name)
 
   me = Person.new(config['me']['name'], config['me']['email'])
   pairs = {}
-  config['pairs'].each do |pair_name, c|
+  config['buddies'].each do |pair_name, c|
     pairs[pair_name] = Pair.new(Person.new(c['name'], c['email']), me)
   end
   person = pairs[mate_name.to_s.downcase] || me
